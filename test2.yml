@@ -1,0 +1,31 @@
+config:
+  target: 'https://jsonplaceholder.typicode.com'
+  phases:
+    - duration: 10
+      arrivalRate: 0
+      rampTo: 20
+      name: "Warm up from idle to the target rps in 10 seconds"
+    - duration: 40
+      arrivalRate: 20
+      name: "Sustain the load for 45 seconds"
+    - pause: 5
+      name: "Cool down for 5 seconds"
+  payload:
+    path: "users.csv"
+    fields:
+      - "userId"
+
+scenarios:
+  - name: "Get random user details followed by query his submitted posts"
+    flow:
+      - get:
+          url: "/users/{{ userId }}"
+          capture:
+            - json: "$.name"
+              as: "name"
+            - json: "$.email"
+              as: "email"
+      - log: "User under testing: {{ userId }} - {{ name }} ({{ email }})"
+      - think: 3
+      - get:
+          url: "/posts?userId={{ userId }}"
